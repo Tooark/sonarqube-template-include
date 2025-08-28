@@ -1,0 +1,91 @@
+spec:
+  inputs:
+    stage:
+      description: "Stage to run Sonarqube"
+      type: string
+      default: sonarqube
+    language:
+      description: "Program Language for Scan and Quality Gate"
+      type: string
+    #.NET variables
+    dotnet_version:
+      description: ".NET version"
+      type: string
+      default: "8.0"
+    dotnet_path_sln_or_csproj:
+      description: "Path for .sln or .csproj"
+      type: string
+      default: ""
+---
+
+variables:
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar" # Defines the location of the analysis task cache
+  GIT_DEPTH: "0" # Tells git to fetch all the branches of the project, required by the analysis task
+
+stages:
+- $[[ inputs.stage ]]
+
+sonarqube:
+  rules:
+  - if: '"$[[ inputs.language | expand_vars ]]" == "other"'
+  - if: '"$[[ inputs.language | expand_vars ]]" == "js"'
+  - if: '"$[[ inputs.language | expand_vars ]]" == "ts"'
+  - if: '"$[[ inputs.language | expand_vars ]]" == "web"'
+  environment: sonarqube
+  stage: $[[ inputs.stage ]]
+  image:
+    name: sonarsource/sonar-scanner-cli:11
+    entrypoint: [ "" ]
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+    - "${SONAR_USER_HOME}/cache"
+    - sonar-scanner/
+  script:
+  - sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN"
+  allow_failure: true
+  tags:
+  - amd64
+
+sonarqube_dotnet:
+  rules:
+  - if: '"$[[ inputs.language | expand_vars ]]" == "dotnet"'
+  stage: $[[ inputs.stage ]]
+  environment: sonarqube
+  image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-alpine
+  script:
+  - dotnet tool install --global dotnet-sonarscanner
+  - dotnet tool install --global dotnet-coverage
+  - export PATH="$HOME/.dotnet/tools:$PATH"
+  - >
+    dotnet-sonarscanner begin \
+      /k:"${SONAR_PROJECT_KEY}" \
+      /d:sonar.host.url="${SONAR_HOST_URL}" \
+      /d:sonar.token="${SONAR_TOKEN}" \
+      /d:sonar.cs.opencover.reportsPaths="coverage.xml"
+  - dotnet build $[[inputs.dotnet_path_sln_or_csproj]] --no-incremental
+  - >
+    dotnet-coverage collect \
+      "dotnet test $[[inputs.dotnet_path_sln_or_csproj]] --configuration Debug /p:CoverletOutputFormat=opencover /p:CoverletOutput='coverage.xml'" \
+      -f xml -o "coverage.xml"
+  - dotnet-sonarscanner end /d:sonar.token="${SONAR_TOKEN}"
+  - >
+    apk add --no-cache jq
+      for i in {1..30}; do
+        STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}api/qualitygates/project_status?projectKey=${SONAR_PROJECT_KEY}" | jq -r '.projectStatus.status')
+        echo "Quality Gate status: $STATUS"
+        if [ "$STATUS" = "OK" ]; then
+          exit 0
+        elif [ "$STATUS" = "ERROR" ]; then
+          echo "Quality Gate failed!"
+          exit 1
+        else
+          echo "Waiting for Quality Gate result..."
+          sleep 10
+        fi
+      done
+    echo "Timeout waiting for Quality Gate result"
+      exit 1
+  tags:
+  - amd64
