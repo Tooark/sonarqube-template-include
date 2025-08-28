@@ -9,7 +9,6 @@ This template officially supports the following project ecosystems:
 - **`dotnet`**: For .NET and .NET Core projects (`.csproj` or `.sln`).
 - **`node`**: For any JavaScript/TypeScript project that uses npm (`package.json`), including frontend (React, Vue, Angular) and backend (Node.js) applications.
 
-
 ## Requirements
 
 This include needs tags on your runners named "amd64" because de architecture is amd64(x86) on Sonarqube CLI and Docker Image base used
@@ -19,6 +18,7 @@ This include needs tags on your runners named "amd64" because de architecture is
 | Input | Description | Default | Required |
 |---|---|---|---|
 | `stage` | The GitLab CI/CD stage where the SonarQube job will run. | `sonarqube` | No |
+| `environment` | The GitLab CI/CD Environment where the SonarQube job will pull variables values. | `sonarqube` | **No** |
 | `language` | The project type to be scanned. Accepted values: `dotnet`, `node`. | - | **Yes** |
 | `dotnet_version` | The .NET SDK version to use for the analysis. | `8.0` | Only for `dotnet` |
 | `dotnet_path_sln_or_csproj` | The relative path to your `.sln` or `.csproj` file. | - | **Yes**, for `dotnet` |
@@ -27,6 +27,12 @@ This include needs tags on your runners named "amd64" because de architecture is
 
 - **`dotnet_version`**: .NET version utilized in csproj or sln file.
 - **`dotnet_path_sln_or_csproj`**: Path to .csproj or .sln file in your project.
+
+And necessary Variables on your Gitlab environment(default is "sonarqube")
+
+- `SONAR_PROJECT_KEY`: Your Sonarqube project Key
+- `SONAR_HOST_URL`: Your Sonarqube host url
+- `SONAR_TOKEN`: Your Sonarqube token
 
 ## 🚀 How to Use
 

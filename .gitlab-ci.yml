@@ -7,6 +7,10 @@ spec:
     language:
       description: "Program Language for Scan and Quality Gate"
       type: string
+    environment:
+      description: "Environment for Scan and Quality Gate"
+      type: string
+      default: sonarqube
     #.NET variables
     dotnet_version:
       description: ".NET version"
@@ -28,7 +32,7 @@ stages:
 sonarqube:
   rules:
   - if: '"$[[ inputs.language | expand_vars ]]" == "node"'
-  environment: sonarqube
+  environment: $[[ inputs.environment ]]
   stage: $[[ inputs.stage ]]
   image:
     name: sonarsource/sonar-scanner-cli:11
@@ -49,7 +53,7 @@ sonarqube_dotnet:
   rules:
   - if: '"$[[ inputs.language | expand_vars ]]" == "dotnet"'
   stage: $[[ inputs.stage ]]
-  environment: sonarqube
+  environment: $[[ inputs.environment ]]
   image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-alpine
   script:
   - dotnet tool install --global dotnet-sonarscanner
