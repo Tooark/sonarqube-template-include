@@ -9,6 +9,11 @@ This template officially supports the following project ecosystems:
 - **`dotnet`**: For .NET and .NET Core projects (`.csproj` or `.sln`).
 - **`node`**: For any JavaScript/TypeScript project that uses npm (`package.json`), including frontend (React, Vue, Angular) and backend (Node.js) applications.
 
+
+## Requirements
+
+This include needs tags on your runners named "amd64" because de architecture is amd64(x86) on Sonarqube CLI and Docker Image base used
+
 ## 🔧 Inputs
 
 | Input | Description | Default | Required |

@@ -27,10 +27,7 @@ stages:
 
 sonarqube:
   rules:
-  - if: '"$[[ inputs.language | expand_vars ]]" == "other"'
-  - if: '"$[[ inputs.language | expand_vars ]]" == "js"'
-  - if: '"$[[ inputs.language | expand_vars ]]" == "ts"'
-  - if: '"$[[ inputs.language | expand_vars ]]" == "web"'
+  - if: '"$[[ inputs.language | expand_vars ]]" == "node"'
   environment: sonarqube
   stage: $[[ inputs.stage ]]
   image:
