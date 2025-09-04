@@ -49,7 +49,7 @@ sonarqube:
 # AMD64
 sonarqube_amd64:
   rules:
-  - if: '"$[[ inputs.language | expand_vars ]]" == "node"'
+  - if: '"$[[ inputs.language | expand_vars ]]" == "node_amd64"'
   environment: $[[ inputs.environment ]]
   stage: $[[ inputs.stage ]]
   image:
@@ -113,7 +113,7 @@ sonarqube_dotnet:
 # AMD64
 sonarqube_dotnet_amd64:
   rules:
-  - if: '"$[[ inputs.language | expand_vars ]]" == "dotnet"'
+  - if: '"$[[ inputs.language | expand_vars ]]" == "dotnet_amd64"'
   stage: $[[ inputs.stage ]]
   environment: $[[ inputs.environment ]]
   image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-alpine
