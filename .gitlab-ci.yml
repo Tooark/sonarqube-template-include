@@ -75,6 +75,9 @@ sonarqube_dotnet:
   environment: $[[ inputs.environment ]]
   image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-noble-arm32v7
   before_script:
+  - apt-get update && apt-get install -y openjdk-17-jre
+  - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-armhf
+  - export PATH=$JAVA_HOME/bin:$PATH
   - dotnet tool install --global dotnet-sonarscanner
   - dotnet tool install --global dotnet-coverage
   - export PATH="$HOME/.dotnet/tools:$PATH"
