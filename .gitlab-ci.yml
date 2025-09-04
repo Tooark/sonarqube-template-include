@@ -73,7 +73,7 @@ sonarqube_dotnet:
   - if: '"$[[ inputs.language | expand_vars ]]" == "dotnet"'
   stage: $[[ inputs.stage ]]
   environment: $[[ inputs.environment ]]
-  image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-bookworm-slim-arm32v7
+  image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-noble-arm32v7
   before_script:
   - dotnet tool install --global dotnet-sonarscanner
   - dotnet tool install --global dotnet-coverage
