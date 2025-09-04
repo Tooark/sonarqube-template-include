@@ -73,12 +73,8 @@ sonarqube_dotnet:
   - if: '"$[[ inputs.language | expand_vars ]]" == "dotnet"'
   stage: $[[ inputs.stage ]]
   environment: $[[ inputs.environment ]]
-  image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-noble-arm32v7
+  image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-noble-arm64v8
   before_script:
-  - apt-get update && apt-get install -y openjdk-17-jre
-  - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-armhf
-  - export PATH=$JAVA_HOME/bin:$PATH
-  - rm -rf ~/.sonar/cache
   - dotnet tool install --global dotnet-sonarscanner
   - dotnet tool install --global dotnet-coverage
   - export PATH="$HOME/.dotnet/tools:$PATH"
