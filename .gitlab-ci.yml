@@ -78,6 +78,7 @@ sonarqube_dotnet:
   - apt-get update && apt-get install -y openjdk-17-jre
   - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-armhf
   - export PATH=$JAVA_HOME/bin:$PATH
+  - rm -rf ~/.sonar/cache
   - dotnet tool install --global dotnet-sonarscanner
   - dotnet tool install --global dotnet-coverage
   - export PATH="$HOME/.dotnet/tools:$PATH"
