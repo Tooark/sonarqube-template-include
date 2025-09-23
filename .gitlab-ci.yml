@@ -44,7 +44,6 @@ sonarqube:
     - sonar-scanner/
   script:
   - sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY"
-  allow_failure: true
 
 # AMD64
 sonarqube_amd64:
@@ -63,7 +62,6 @@ sonarqube_amd64:
     - sonar-scanner/
   script:
   - sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY"
-  allow_failure: true
   tags:
   - amd64
 
