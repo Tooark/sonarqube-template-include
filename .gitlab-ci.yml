@@ -76,6 +76,13 @@ sonarqube_dotnet:
   - dotnet tool install --global dotnet-sonarscanner
   - dotnet tool install --global dotnet-coverage
   - export PATH="$HOME/.dotnet/tools:$PATH"
+  - |
+    if [ -n "${NUGET_URL}" ] && [ -n "${NUGET_USER}" ] && [ -n "${NUGET_PASS}" ]; then
+      echo "Adicionando source NuGet..."
+      dotnet nuget add source "${NUGET_URL}" -n github -u "${NUGET_USER}" -p "${NUGET_PASS}" --store-password-in-clear-text
+    else
+      echo "Variáveis de NuGet não definidas. Pulando configuração."
+    fi
   script:
   - >
     dotnet-sonarscanner begin \
@@ -119,6 +126,13 @@ sonarqube_dotnet_amd64:
   - dotnet tool install --global dotnet-sonarscanner
   - dotnet tool install --global dotnet-coverage
   - export PATH="$HOME/.dotnet/tools:$PATH"
+  - |
+    if [ -n "${NUGET_URL}" ] && [ -n "${NUGET_USER}" ] && [ -n "${NUGET_PASS}" ]; then
+      echo "Adicionando source NuGet..."
+      dotnet nuget add source "${NUGET_URL}" -n github -u "${NUGET_USER}" -p "${NUGET_PASS}" --store-password-in-clear-text
+    else
+      echo "Variáveis de NuGet não definidas. Pulando configuração."
+    fi
   script:
   - >
     dotnet-sonarscanner begin \
