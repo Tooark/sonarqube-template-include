@@ -22,6 +22,15 @@ spec:
       type: string
       default: ""
 ---
+.retry: &retry
+  retry:
+    max: 2
+    when:
+    - runner_system_failure
+    - stuck_or_timeout_failure
+    - api_failure
+    - job_execution_timeout
+    - scheduler_failure
 
 variables:
   SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar" # Defines the location of the analysis task cache
@@ -32,6 +41,7 @@ stages:
 
 # ARM64
 sonarqube:
+  <<: *retry
   rules:
   - if: '"$[[ inputs.language | expand_vars ]]" == "" || "$[[ inputs.language | expand_vars ]]" == "node"'
   environment: $[[ inputs.environment ]]
@@ -48,6 +58,7 @@ sonarqube:
 
 # AMD64
 sonarqube_amd64:
+  <<: *retry
   rules:
   - if: '"$[[ inputs.language | expand_vars ]]" == "node_amd64"'
   environment: $[[ inputs.environment ]]
@@ -68,6 +79,7 @@ sonarqube_amd64:
 
 # ARM64
 sonarqube_dotnet:
+  <<: *retry
   rules:
   - if: '"$[[ inputs.language | expand_vars ]]" == "dotnet"'
   stage: $[[ inputs.stage ]]
@@ -118,6 +130,7 @@ sonarqube_dotnet:
 
 # AMD64
 sonarqube_dotnet_amd64:
+  <<: *retry
   rules:
   - if: '"$[[ inputs.language | expand_vars ]]" == "dotnet_amd64"'
   stage: $[[ inputs.stage ]]
