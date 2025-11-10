@@ -54,7 +54,7 @@ sonarqube:
     - "${SONAR_USER_HOME}/cache"
     - sonar-scanner/
   script:
-  - sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8 -Dsonar.tests=tests
+  - sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8
 
 # AMD64
 sonarqube_amd64:
@@ -73,7 +73,7 @@ sonarqube_amd64:
     - "${SONAR_USER_HOME}/cache"
     - sonar-scanner/
   script:
-  - sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8 -Dsonar.tests=tests
+  - sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8
   tags:
   - amd64
 
@@ -180,3 +180,4 @@ sonarqube_dotnet_amd64:
       exit 1
   tags:
   - amd64
+
