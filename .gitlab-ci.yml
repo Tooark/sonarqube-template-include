@@ -86,6 +86,10 @@ sonarqube_dotnet:
   environment: $[[ inputs.environment ]]
   image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-noble-arm64v8
   before_script:
+  - apt-get update && apt-get install -y curl gnupg
+  - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  - apt-get install -y nodejs
+  - node -v && npm -v
   - dotnet tool install --global dotnet-sonarscanner
   - dotnet tool install --global dotnet-coverage
   - export PATH="$HOME/.dotnet/tools:$PATH"
@@ -137,6 +141,8 @@ sonarqube_dotnet_amd64:
   environment: $[[ inputs.environment ]]
   image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-alpine
   before_script:
+  - apk add --no-cache nodejs npm
+  - node -v && npm -v
   - dotnet tool install --global dotnet-sonarscanner
   - dotnet tool install --global dotnet-coverage
   - export PATH="$HOME/.dotnet/tools:$PATH"
@@ -180,4 +186,5 @@ sonarqube_dotnet_amd64:
       exit 1
   tags:
   - amd64
+
 
