@@ -55,6 +55,13 @@ sonarqube:
     - sonar-scanner/
   script:
   - sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8
+  - |
+    exit_status=$?
+    if [ $exit_status -eq 0 ]; then
+      echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
+    else
+      echo "SonarQube scan failed."
+    fi
 
 # AMD64
 sonarqube_amd64:
@@ -74,6 +81,13 @@ sonarqube_amd64:
     - sonar-scanner/
   script:
   - sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8
+  - |
+    exit_status=$?
+    if [ $exit_status -eq 0 ]; then
+      echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
+    else
+      echo "SonarQube scan failed."
+    fi
   tags:
   - amd64
 
@@ -131,6 +145,13 @@ sonarqube_dotnet:
       done
     echo "Timeout waiting for Quality Gate result"
       exit 1
+  - |
+    exit_status=$?
+    if [ $exit_status -eq 0 ]; then
+      echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
+    else
+      echo "SonarQube scan failed."
+    fi
 
 # AMD64
 sonarqube_dotnet_amd64:
@@ -184,7 +205,12 @@ sonarqube_dotnet_amd64:
       done
     echo "Timeout waiting for Quality Gate result"
       exit 1
+  - |
+    exit_status=$?
+    if [ $exit_status -eq 0 ]; then
+      echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
+    else
+      echo "SonarQube scan failed."
+    fi
   tags:
   - amd64
-
-
