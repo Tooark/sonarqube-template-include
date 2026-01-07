@@ -58,9 +58,12 @@ sonarqube:
   - |
     exit_status=$?
     if [ $exit_status -eq 0 ]; then
+      echo "SonarQube successfully!"
       echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
     else
-      echo "SonarQube scan failed."
+      echo "SonarQube failed!"
+      echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
+      exit 1
     fi
 
 # AMD64
@@ -84,9 +87,12 @@ sonarqube_amd64:
   - |
     exit_status=$?
     if [ $exit_status -eq 0 ]; then
+      echo "SonarQube scan completed successfully."
       echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
     else
       echo "SonarQube scan failed."
+      echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
+      exit 1
     fi
   tags:
   - amd64
@@ -148,9 +154,12 @@ sonarqube_dotnet:
   - |
     exit_status=$?
     if [ $exit_status -eq 0 ]; then
+      echo "SonarQube scan completed successfully."
       echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
     else
       echo "SonarQube scan failed."
+      echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
+      exit 1
     fi
 
 # AMD64
@@ -208,9 +217,12 @@ sonarqube_dotnet_amd64:
   - |
     exit_status=$?
     if [ $exit_status -eq 0 ]; then
+      echo "SonarQube scan completed successfully."
       echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
     else
       echo "SonarQube scan failed."
+      echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
+      exit 1
     fi
   tags:
   - amd64
