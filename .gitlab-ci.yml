@@ -134,21 +134,21 @@ sonarqube_dotnet:
       "dotnet test $[[inputs.dotnet_path_sln_or_csproj]] --configuration Debug /p:CoverletOutputFormat=opencover /p:CoverletOutput='coverage.xml'" \
       -f xml -o "coverage.xml"
   - dotnet-sonarscanner end /d:sonar.token="${SONAR_TOKEN}"
-  - >
+  - |
     apt-get update && apt-get install -y jq
-      for i in {1..30}; do
-        STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}api/qualitygates/project_status?projectKey=${SONAR_PROJECT_KEY}" | jq -r '.projectStatus.status')
-        echo "Quality Gate status: $STATUS"
-        if [ "$STATUS" = "OK" ]; then
-          exit 0
-        elif [ "$STATUS" = "ERROR" ]; then
-          echo "Quality Gate failed!"
-          exit 1
-        else
-          echo "Waiting for Quality Gate result..."
-          sleep 10
-        fi
-      done
+    for i in {1..30}; do
+      STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}api/qualitygates/project_status?projectKey=${SONAR_PROJECT_KEY}" | jq -r '.projectStatus.status')
+      echo "Quality Gate status: $STATUS"
+      if [ "$STATUS" = "OK" ]; then
+        exit 0
+      elif [ "$STATUS" = "ERROR" ]; then
+        echo "Quality Gate failed!"
+        exit 1
+      else
+        echo "Waiting for Quality Gate result..."
+        sleep 10
+      fi
+    done
     echo "Timeout waiting for Quality Gate result"
       exit 1
   - |
@@ -197,21 +197,21 @@ sonarqube_dotnet_amd64:
       "dotnet test $[[inputs.dotnet_path_sln_or_csproj]] --configuration Debug /p:CoverletOutputFormat=opencover /p:CoverletOutput='coverage.xml'" \
       -f xml -o "coverage.xml"
   - dotnet-sonarscanner end /d:sonar.token="${SONAR_TOKEN}"
-  - >
+  - |
     apk add --no-cache jq
-      for i in {1..30}; do
-        STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}api/qualitygates/project_status?projectKey=${SONAR_PROJECT_KEY}" | jq -r '.projectStatus.status')
-        echo "Quality Gate status: $STATUS"
-        if [ "$STATUS" = "OK" ]; then
-          exit 0
-        elif [ "$STATUS" = "ERROR" ]; then
-          echo "Quality Gate failed!"
-          exit 1
-        else
-          echo "Waiting for Quality Gate result..."
-          sleep 10
-        fi
-      done
+    for i in {1..30}; do
+      STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}api/qualitygates/project_status?projectKey=${SONAR_PROJECT_KEY}" | jq -r '.projectStatus.status')
+      echo "Quality Gate status: $STATUS"
+      if [ "$STATUS" = "OK" ]; then
+        exit 0
+      elif [ "$STATUS" = "ERROR" ]; then
+        echo "Quality Gate failed!"
+        exit 1
+      else
+        echo "Waiting for Quality Gate result..."
+        sleep 10
+      fi
+    done
     echo "Timeout waiting for Quality Gate result"
       exit 1
   - |
