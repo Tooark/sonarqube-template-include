@@ -95,7 +95,7 @@ sonarqube_amd64:
       exit 1
     fi
   tags:
-  - amd64
+  - amd64-dedicated
 
 # ARM64
 sonarqube_dotnet:
@@ -191,4 +191,4 @@ sonarqube_dotnet_amd64:
       exit 1
     fi
   tags:
-  - amd64
+  - amd64-dedicated
