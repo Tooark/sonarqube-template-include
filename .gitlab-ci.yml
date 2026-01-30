@@ -133,8 +133,7 @@ sonarqube_dotnet:
       /d:sonar.host.url="${SONAR_HOST_URL}" \
       /d:sonar.token="${SONAR_TOKEN}" \
       /d:sonar.projectBaseDir="${CI_PROJECT_DIR}" \
-      /d:sonar.cs.opencover.reportsPaths="coverage.xml" \
-      /d:sonar.exclusions="$[[ inputs.excludes | expand_vars ]]"
+      /d:sonar.cs.opencover.reportsPaths="coverage.xml"
   - dotnet build $[[inputs.dotnet_path_sln_or_csproj]] --no-incremental
   - >
     dotnet-coverage collect \
@@ -180,8 +179,7 @@ sonarqube_dotnet_amd64:
       /d:sonar.host.url="${SONAR_HOST_URL}" \
       /d:sonar.token="${SONAR_TOKEN}" \
       /d:sonar.projectBaseDir="${CI_PROJECT_DIR}" \
-      /d:sonar.cs.opencover.reportsPaths="coverage.xml" \
-      /d:sonar.exclusions="$[[ inputs.excludes | expand_vars ]]"
+      /d:sonar.cs.opencover.reportsPaths="coverage.xml"
   - dotnet build $[[inputs.dotnet_path_sln_or_csproj]] --no-incremental
   - >
     dotnet-coverage collect \
