@@ -2,31 +2,70 @@
 # -Dsonar.exclusions=src/main/generated/**/*,**/*.test.js
 spec:
   inputs:
-    stage:
-      description: "Stage to run Sonarqube"
-      type: string
-      default: sonarqube
     language:
       description: "Program Language for Scan and Quality Gate"
       type: string
-      default: ""
-    environment:
-      description: "Environment for Scan and Quality Gate"
+      default: "node"
+      options:
+      - maven # Maven
+      - gradle # Gradle
+      - dotnet # C#/.NET
+      - python # Python
+      - node # Node.js
+      - other # Other
+    arch:
+      description: "Architecture for Scan and Quality Gate"
       type: string
-      default: sonarqube
+      default: "arm64"
+      options:
+      - arm64 # ARM64
+      - amd64 # AMD64
     excludes:
       description: "Files and folders to exclude from analysis"
       type: string
       default: ""
+    stage:
+      description: "Stage to run Sonarqube"
+      type: string
+      default: sonarqube
+    environment:
+      description: "Environment for Scan and Quality Gate"
+      type: string
+      default: sonarqube
+    image:
+      description: "Docker image to use for the job"
+      type: string
+      default: "public.ecr.aws/n6a9k4a7/deploy:1-sonarqube"
+    # Sonarqube Quality Gate variables
+    quality_gate:
+      description: "Wait for Quality Gate"
+      type: boolean
+      default: true
+    quality_gate_timeout:
+      description: "Timeout for Quality Gate"
+      type: string
+      default: "300"
     #.NET variables
     dotnet_version:
       description: ".NET version"
       type: string
-      default: "8.0"
+      default: "10.0"
     dotnet_path_sln_or_csproj:
       description: "Path for .sln or .csproj"
       type: string
       default: ""
+    dotnet_test_and_coverage:
+      description: "Run tests and collect coverage for .NET projects"
+      type: boolean
+      default: false
+    gradle_version:
+      description: "Gradle version"
+      type: string
+      default: "9"
+    maven_version:
+      description: "Maven version"
+      type: string
+      default: "3.9"
 ---
 .retry: &retry
   retry:
@@ -39,6 +78,10 @@ spec:
     - scheduler_failure
 
 variables:
+  DOCKER_IMAGE_DOTNET: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-alpine
+  DOCKER_IMAGE_CLI: $[[ inputs.image | expand_vars ]]
+  DOCKER_IMAGE_MAVEN: "maven:$[[inputs.maven_version]]"
+  DOCKER_IMAGE_GRADLE: "gradle:$[[inputs.gradle_version]]"
   SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
   GIT_DEPTH: "0"
 
@@ -49,16 +92,21 @@ stages:
 sonarqube:
   <<: *retry
   rules:
-  - if: '"$[[ inputs.language | expand_vars ]]" == "" || "$[[ inputs.language | expand_vars ]]" == "node"'
+  - if: '"$[[ inputs.language | expand_vars ]]" == "" || "$[[ inputs.language | expand_vars ]]" == "node" || "$[[ inputs.language | expand_vars ]]" == "other" || "$[[ inputs.arch | expand_vars ]]" == "arm64"'
   environment: $[[ inputs.environment ]]
   stage: $[[ inputs.stage ]]
-  image: public.ecr.aws/n6a9k4a7/deploy:1-sonarqube
+  image: $DOCKER_IMAGE_CLI
   cache:
     policy: pull-push
     key: "sonar-cache-$CI_COMMIT_REF_SLUG"
     paths:
     - "${SONAR_USER_HOME}/cache"
     - sonar-scanner/
+  before_script:
+  # Verifica se as variáveis obrigatórias estão definidas
+  - '[ -n "${SONAR_HOST_URL:-}" ] || { echo "ERROR: SONAR_HOST_URL is not defined"; exit 1; }'
+  - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
+  - '[ -n "${SONAR_PROJECT_KEY:-}" ] || { echo "ERROR: SONAR_PROJECT_KEY is not defined"; exit 1; }'
   script:
   - sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8 -Dsonar.exclusions="$[[ inputs.excludes | expand_vars ]]"
   - |
@@ -76,7 +124,7 @@ sonarqube:
 sonarqube_amd64:
   <<: *retry
   rules:
-  - if: '"$[[ inputs.language | expand_vars ]]" == "node_amd64"'
+  - if: '"$[[ inputs.language | expand_vars ]]" == "" || "$[[ inputs.language | expand_vars ]]" == "node" || "$[[ inputs.language | expand_vars ]]" == "other" || "$[[ inputs.arch | expand_vars ]]" == "amd64"'
   environment: $[[ inputs.environment ]]
   stage: $[[ inputs.stage ]]
   image:
@@ -88,6 +136,11 @@ sonarqube_amd64:
     paths:
     - "${SONAR_USER_HOME}/cache"
     - sonar-scanner/
+  before_script:
+  # Verifica se as variáveis obrigatórias estão definidas
+  - '[ -n "${SONAR_HOST_URL:-}" ] || { echo "ERROR: SONAR_HOST_URL is not defined"; exit 1; }'
+  - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
+  - '[ -n "${SONAR_PROJECT_KEY:-}" ] || { echo "ERROR: SONAR_PROJECT_KEY is not defined"; exit 1; }'
   script:
   - sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8 -Dsonar.exclusions="$[[ inputs.excludes | expand_vars ]]"
   - |
@@ -103,98 +156,140 @@ sonarqube_amd64:
   tags:
   - amd64-dedicated
 
-# ARM64
-sonarqube_dotnet:
-  <<: *retry
+# Python
+sonar_python:
+  rules:
+  - if: '"$[[ inputs.language | expand_vars ]]" == "python"'
+  environment: $[[ inputs.environment ]]
+  stage: $[[ inputs.stage ]]
+  image:
+    name: $DOCKER_IMAGE_CLI
+    entrypoint: [ "" ]
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+    - "${SONAR_USER_HOME}/cache"
+    - sonar-scanner/
+  script:
+  - >
+    sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8 -Dsonar.qualitygate.wait=$[[ inputs.quality_gate ]] -Dsonar.qualitygate.timeout=$[[ inputs.quality_gate_timeout ]]
+
+#.NET
+sonar_dotnet_test_coverage:
+  rules:
+  - if: '"$[[ inputs.language | expand_vars ]]" == "dotnet" && "$[[ inputs.dotnet_test_and_coverage | expand_vars ]]" == "true"'
+  image: $DOCKER_IMAGE_DOTNET
+  stage: $[[ inputs.stage ]]
+  environment: $[[ inputs.environment ]]
+  before_script:
+  - apk add --no-cache bash curl jq
+  - dotnet tool install --global dotnet-sonarscanner
+  - export PATH="$HOME/.dotnet/tools:$PATH"
+  # Verifica se as variáveis obrigatórias estão definidas
+  - '[ -n "${SONAR_HOST_URL:-}" ] || { echo "ERROR: SONAR_HOST_URL is not defined"; exit 1; }'
+  - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
+  - '[ -n "${SONAR_PROJECT_KEY:-}" ] || { echo "ERROR: SONAR_PROJECT_KEY is not defined"; exit 1; }'
+
+  script:
+  # 1) Inicia a análise (apontando para OpenCover)
+  - >
+    dotnet-sonarscanner begin /k:"$SONAR_PROJECT_KEY" /d:sonar.host.url="$SONAR_HOST_URL" /d:sonar.token="$SONAR_TOKEN" /d:sonar.cs.opencover.reportsPaths="TestResults/**/coverage.opencover.xml" /d:sonar.cs.vstest.reportsPaths="TestResults/*.trx"
+
+  # 2) Build da solução/projeto (utilizando --no-incremental para garantir que tudo seja recompilado)
+  - >
+    dotnet build $[[inputs.dotnet_path_sln_or_csproj]] --no-incremental
+
+  # 3) Testes + cobertura (GERA DOIS FORMATOS: cobertura + opencover)
+  - >
+    dotnet test --configuration Debug --results-directory TestResults --collect:"XPlat Code Coverage;Format=cobertura,opencover"
+
+  # 4) Consolida 1 arquivo Cobertura com nome estável para o GitLab
+  - >
+    COB_FILE=$(find TestResults -name 'coverage.cobertura.xml' | head -n 1) && cp "$COB_FILE" coverage.cobertura.xml
+
+  # 5) Finaliza a análise e aguarda o Quality Gate (timeout de 5 minutos)
+  - >
+    dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN" /d:sonar.qualitygate.wait=$[[ inputs.quality_gate ]] /d:sonar.qualitygate.timeout=$[[ inputs.quality_gate_timeout ]]
+
+  artifacts:
+    when: always
+    paths:
+    - TestResults/**
+    - coverage.cobertura.xml
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.cobertura.xml
+
+sonar_dotnet:
   rules:
   - if: '"$[[ inputs.language | expand_vars ]]" == "dotnet"'
-  stage: $[[ inputs.stage ]]
   environment: $[[ inputs.environment ]]
-  image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-noble-arm64v8
-  before_script:
-  - apt-get update && apt-get install -y curl gnupg
-  - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-  - apt-get install -y nodejs
-  - node -v && npm -v
-  - dotnet tool install --global dotnet-sonarscanner
-  - dotnet tool install --global dotnet-coverage
-  - export PATH="$HOME/.dotnet/tools:$PATH"
-  - |
-    if [ -n "${NUGET_URL}" ] && [ -n "${NUGET_USER}" ] && [ -n "${NUGET_PASS}" ]; then
-      echo "Adicionando source NuGet..."
-      dotnet nuget add source "${NUGET_URL}" -n github -u "${NUGET_USER}" -p "${NUGET_PASS}" --store-password-in-clear-text
-    else
-      echo "Variáveis de NuGet não definidas. Pulando configuração."
-    fi
+  stage: $[[ inputs.stage ]]
+  image: $IMAGE_DOTNET
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+    - "${SONAR_USER_HOME}/cache"
+    - sonar-scanner/
   script:
-  - >
-    dotnet-sonarscanner begin \
-      /k:"${SONAR_PROJECT_KEY}" \
-      /d:sonar.host.url="${SONAR_HOST_URL}" \
-      /d:sonar.token="${SONAR_TOKEN}" \
-      /d:sonar.projectBaseDir="${CI_PROJECT_DIR}" \
-      /d:sonar.cs.opencover.reportsPaths="coverage.xml"
-  - dotnet build $[[inputs.dotnet_path_sln_or_csproj]] --no-incremental
-  - >
-    dotnet-coverage collect \
-      "dotnet test $[[inputs.dotnet_path_sln_or_csproj]] --configuration Debug /p:CoverletOutputFormat=opencover /p:CoverletOutput='coverage.xml'" \
-      -f xml -o "coverage.xml"
-  - dotnet-sonarscanner end /d:sonar.token="${SONAR_TOKEN}"
-  - |
-    exit_status=$?
-    if [ $exit_status -eq 0 ]; then
-      echo "SonarQube scan completed successfully."
-      echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
-    else
-      echo "SonarQube scan failed."
-      echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
-      exit 1
-    fi
+  - "dotnet tool install --global dotnet-sonarscanner"
+  - 'export PATH="$PATH:$HOME/.dotnet/tools"'
+  - 'dotnet sonarscanner begin /k:"devops_iac_0-ditie-devops_8dfb2e16-4c9c-4ec5-b241-b298f15062bc" /d:sonar.token="$SONAR_TOKEN" /d:"sonar.host.url=$SONAR_HOST_URL" '
+  - "dotnet build"
+  - 'dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"'
+  allow_failure: true
 
-# AMD64
-sonarqube_dotnet_amd64:
-  <<: *retry
+# Maven
+sonar_maven:
   rules:
-  - if: '"$[[ inputs.language | expand_vars ]]" == "dotnet_amd64"'
-  stage: $[[ inputs.stage ]]
+  - if: '"$[[ inputs.language | expand_vars ]]" == "maven"'
   environment: $[[ inputs.environment ]]
-  image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-alpine
+  stage: $[[ inputs.stage ]]
+  image: $IMAGE_MAVEN
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+    - "${SONAR_USER_HOME}/cache"
+    - sonar-scanner/
   before_script:
-  - apk add --no-cache nodejs npm
-  - node -v && npm -v
-  - dotnet tool install --global dotnet-sonarscanner
-  - dotnet tool install --global dotnet-coverage
-  - export PATH="$HOME/.dotnet/tools:$PATH"
-  - |
-    if [ -n "${NUGET_URL}" ] && [ -n "${NUGET_USER}" ] && [ -n "${NUGET_PASS}" ]; then
-      echo "Adicionando source NuGet..."
-      dotnet nuget add source "${NUGET_URL}" -n github -u "${NUGET_USER}" -p "${NUGET_PASS}" --store-password-in-clear-text
-    else
-      echo "Variáveis de NuGet não definidas. Pulando configuração."
-    fi
+  # Verifica se as variáveis obrigatórias estão definidas
+  - '[ -n "${SONAR_HOST_URL:-}" ] || { echo "ERROR: SONAR_HOST_URL is not defined"; exit 1; }'
+  - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
+  - '[ -n "${SONAR_PROJECT_KEY:-}" ] || { echo "ERROR: SONAR_PROJECT_KEY is not defined"; exit 1; }'
   script:
-  - >
-    dotnet-sonarscanner begin \
-      /k:"${SONAR_PROJECT_KEY}" \
-      /d:sonar.host.url="${SONAR_HOST_URL}" \
-      /d:sonar.token="${SONAR_TOKEN}" \
-      /d:sonar.projectBaseDir="${CI_PROJECT_DIR}" \
-      /d:sonar.cs.opencover.reportsPaths="coverage.xml"
-  - dotnet build $[[inputs.dotnet_path_sln_or_csproj]] --no-incremental
-  - >
-    dotnet-coverage collect \
-      "dotnet test $[[inputs.dotnet_path_sln_or_csproj]] --configuration Debug /p:CoverletOutputFormat=opencover /p:CoverletOutput='coverage.xml'" \
-      -f xml -o "coverage.xml"
-  - dotnet-sonarscanner end /d:sonar.token="${SONAR_TOKEN}"
-  - |
-    exit_status=$?
-    if [ $exit_status -eq 0 ]; then
-      echo "SonarQube scan completed successfully."
-      echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
-    else
-      echo "SonarQube scan failed."
-      echo "Url to project: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
-      exit 1
-    fi
-  tags:
-  - amd64-dedicated
+  - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+  allow_failure: true
+
+# Gradle
+sonar_gradle:
+  rules:
+  - if: '"$[[ inputs.language | expand_vars ]]" == "gradle"'
+  environment: $[[ inputs.environment ]]
+  stage: $[[ inputs.stage ]]
+  image: $IMAGE_GRADLE
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+    - "${SONAR_USER_HOME}/cache"
+    - sonar-scanner/
+  before_script:
+  # Verifica se as variáveis obrigatórias estão definidas
+  - '[ -n "${SONAR_HOST_URL:-}" ] || { echo "ERROR: SONAR_HOST_URL is not defined"; exit 1; }'
+  - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
+  - '[ -n "${SONAR_PROJECT_KEY:-}" ] || { echo "ERROR: SONAR_PROJECT_KEY is not defined"; exit 1; }'
+  script: gradle sonar
+  allow_failure: true
