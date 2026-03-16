@@ -94,7 +94,7 @@ stages:
 sonarqube:
   <<: *retry
   rules:
-  - if: '"$[[ inputs.language | expand_vars ]]" == "" || "$[[ inputs.language | expand_vars ]]" == "node" || "$[[ inputs.language | expand_vars ]]" == "other" || "$[[ inputs.arch | expand_vars ]]" == "arm64"'
+  - if: '"$[[ inputs.language | expand_vars ]]" == "" || "$[[ inputs.language | expand_vars ]]" == "node" || "$[[ inputs.language | expand_vars ]]" == "other" && "$[[ inputs.arch | expand_vars ]]" == "arm64"'
   environment: $[[ inputs.environment ]]
   stage: $[[ inputs.stage ]]
   image: $DOCKER_IMAGE_CLI
@@ -125,7 +125,7 @@ sonarqube:
 sonarqube_amd64:
   <<: *retry
   rules:
-  - if: '"$[[ inputs.language | expand_vars ]]" == "" || "$[[ inputs.language | expand_vars ]]" == "node" || "$[[ inputs.language | expand_vars ]]" == "other" || "$[[ inputs.arch | expand_vars ]]" == "amd64"'
+  - if: '"$[[ inputs.language | expand_vars ]]" == "" || "$[[ inputs.language | expand_vars ]]" == "node" || "$[[ inputs.language | expand_vars ]]" == "other" && "$[[ inputs.arch | expand_vars ]]" == "amd64"'
   environment: $[[ inputs.environment ]]
   stage: $[[ inputs.stage ]]
   image:
