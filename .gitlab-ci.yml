@@ -10,6 +10,7 @@ spec:
       - dotnet # C#/.NET
       - python # Python
       - node # Node.js
+      - go # Go
       - other # Other
     arch:
       description: "Architecture for Scan and Quality Gate"
@@ -66,6 +67,10 @@ spec:
       description: "Maven version"
       type: string
       default: "3.9"
+    go_version:
+      description: "Go version"
+      type: string
+      default: "1.26"
 ---
 default:
   retry:
@@ -282,3 +287,29 @@ sonar_gradle:
   - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
   script: gradle sonarqube
   allow_failure: true
+
+# Go
+sonar_go:
+  rules:
+  - if: '"$[[ inputs.language | expand_vars ]]" == "go"'
+  environment: $[[ inputs.environment ]]
+  stage: $[[ inputs.stage ]]
+  image: "golang:$[[inputs.go_version | expand_vars]]-alpine"
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+    - "${SONAR_USER_HOME}/cache"
+    - sonar-scanner/
+  before_script:
+  # Verifica se as variáveis obrigatórias estão definidas
+  - '[ -n "${SONAR_HOST_URL:-}" ] || { echo "ERROR: SONAR_HOST_URL is not defined"; exit 1; }'
+  - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
+  - apk add --no-cache bash curl unzip
+  - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip && unzip sonar-scanner.zip -d /opt && rm sonar-scanner.zip
+  - export PATH="/opt/sonar-scanner-4.8.0.2856-linux/bin:$PATH" && sonar-scanner --version
+  script:
+  - sonar-scanner -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8 -Dsonar.exclusions="$[[ inputs.excludes | expand_vars ]]"
