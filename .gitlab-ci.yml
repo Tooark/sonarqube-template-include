@@ -62,7 +62,7 @@ spec:
     gradle_version:
       description: "Gradle version"
       type: string
-      default: "9"
+      default: "9-jdk17-jammy"
     # Maven variables
     maven_version:
       description: "Maven version"
@@ -274,9 +274,7 @@ sonar_gradle:
   - if: '"$[[ inputs.language | expand_vars ]]" == "gradle"'
   environment: $[[ inputs.environment ]]
   stage: $[[ inputs.stage ]]
-  image:
-    name: $IMAGE_GRADLE
-    entrypoint: [ "" ]
+  image: $IMAGE_GRADLE
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
     GIT_DEPTH: "0"
@@ -290,5 +288,5 @@ sonar_gradle:
   # Verifica se as variáveis obrigatórias estão definidas
   - '[ -n "${SONAR_HOST_URL:-}" ] || { echo "ERROR: SONAR_HOST_URL is not defined"; exit 1; }'
   - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
-  script: gradle sonar
+  script: sonar
   allow_failure: true
