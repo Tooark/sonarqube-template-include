@@ -90,7 +90,6 @@ stages:
 
 # ARM64
 sonarqube:
-  <<: *retry
   rules:
   - if: '"$[[ inputs.language | expand_vars ]]" == "" || "$[[ inputs.language | expand_vars ]]" == "node" || "$[[ inputs.language | expand_vars ]]" == "other" && "$[[ inputs.arch | expand_vars ]]" == "arm64"'
   environment: $[[ inputs.environment ]]
@@ -121,7 +120,6 @@ sonarqube:
 
 # AMD64
 sonarqube_amd64:
-  <<: *retry
   rules:
   - if: '"$[[ inputs.language | expand_vars ]]" == "" || "$[[ inputs.language | expand_vars ]]" == "node" || "$[[ inputs.language | expand_vars ]]" == "other" && "$[[ inputs.arch | expand_vars ]]" == "amd64"'
   environment: $[[ inputs.environment ]]
