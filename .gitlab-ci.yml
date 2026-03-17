@@ -78,10 +78,6 @@ default:
     - job_execution_timeout
 
 variables:
-  DOCKER_IMAGE_DOTNET: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version | expand_vars]]-alpine
-  DOCKER_IMAGE_CLI: $[[ inputs.image | expand_vars ]]
-  DOCKER_IMAGE_MAVEN: "maven:$[[inputs.maven_version | expand_vars]]"
-  DOCKER_IMAGE_GRADLE: "gradle:$[[inputs.gradle_version | expand_vars]]"
   SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
   GIT_DEPTH: "0"
 
@@ -94,7 +90,7 @@ sonarqube:
   - if: '"$[[ inputs.language | expand_vars ]]" == "" || "$[[ inputs.language | expand_vars ]]" == "node" || "$[[ inputs.language | expand_vars ]]" == "other" && "$[[ inputs.arch | expand_vars ]]" == "arm64"'
   environment: $[[ inputs.environment ]]
   stage: $[[ inputs.stage ]]
-  image: $DOCKER_IMAGE_CLI
+  image: $[[ inputs.image | expand_vars ]]
   cache:
     policy: pull-push
     key: "sonar-cache-$CI_COMMIT_REF_SLUG"
@@ -159,7 +155,7 @@ sonar_python:
   environment: $[[ inputs.environment ]]
   stage: $[[ inputs.stage ]]
   image:
-    name: $DOCKER_IMAGE_CLI
+    name: $[[ inputs.image | expand_vars ]]
     entrypoint: [ "" ]
   cache:
     policy: pull-push
@@ -175,7 +171,7 @@ sonar_python:
 sonar_dotnet_test_coverage:
   rules:
   - if: '"$[[ inputs.language | expand_vars ]]" == "dotnet" && "$[[ inputs.dotnet_test_and_coverage ]]" == "true"'
-  image: $DOCKER_IMAGE_DOTNET
+  image: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version | expand_vars]]-alpine
   stage: $[[ inputs.stage ]]
   environment: $[[ inputs.environment ]]
   before_script:
@@ -246,7 +242,7 @@ sonar_maven:
   - if: '"$[[ inputs.language | expand_vars ]]" == "maven"'
   environment: $[[ inputs.environment ]]
   stage: $[[ inputs.stage ]]
-  image: $IMAGE_MAVEN
+  image: "maven:$[[inputs.maven_version | expand_vars]]"
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
     GIT_DEPTH: "0"
