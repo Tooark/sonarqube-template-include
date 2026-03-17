@@ -1,5 +1,3 @@
-# Implementar parametro de --exclude no comando do sonar via input
-# -Dsonar.exclusions=src/main/generated/**/*,**/*.test.js
 spec:
   inputs:
     language:
@@ -69,21 +67,21 @@ spec:
       type: string
       default: "3.9"
 ---
-.retry: &retry
+default:
   retry:
     max: 2
     when:
     - runner_system_failure
     - stuck_or_timeout_failure
+    - unknown_failure
     - api_failure
     - job_execution_timeout
-    - scheduler_failure
 
 variables:
-  DOCKER_IMAGE_DOTNET: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version]]-alpine
+  DOCKER_IMAGE_DOTNET: mcr.microsoft.com/dotnet/sdk:$[[inputs.dotnet_version | expand_vars]]-alpine
   DOCKER_IMAGE_CLI: $[[ inputs.image | expand_vars ]]
-  DOCKER_IMAGE_MAVEN: "maven:$[[inputs.maven_version]]"
-  DOCKER_IMAGE_GRADLE: "gradle:$[[inputs.gradle_version]]"
+  DOCKER_IMAGE_MAVEN: "maven:$[[inputs.maven_version | expand_vars]]"
+  DOCKER_IMAGE_GRADLE: "gradle:$[[inputs.gradle_version | expand_vars]]"
   SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
   GIT_DEPTH: "0"
 
