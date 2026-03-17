@@ -288,5 +288,5 @@ sonar_gradle:
   # Verifica se as variáveis obrigatórias estão definidas
   - '[ -n "${SONAR_HOST_URL:-}" ] || { echo "ERROR: SONAR_HOST_URL is not defined"; exit 1; }'
   - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
-  script: sonar
+  script: gradle sonar
   allow_failure: true
