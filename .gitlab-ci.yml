@@ -236,7 +236,7 @@ sonar_dotnet:
   script:
   - "dotnet tool install --global dotnet-sonarscanner"
   - 'export PATH="$PATH:$HOME/.dotnet/tools"'
-  - 'dotnet sonarscanner begin /k:"devops_iac_0-ditie-devops_8dfb2e16-4c9c-4ec5-b241-b298f15062bc" /d:sonar.token="$SONAR_TOKEN" /d:"sonar.host.url=$SONAR_HOST_URL" '
+  - 'dotnet sonarscanner begin /d:sonar.token="$SONAR_TOKEN" /d:"sonar.host.url=$SONAR_HOST_URL" '
   - "dotnet build"
   - 'dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"'
   allow_failure: true
@@ -262,7 +262,7 @@ sonar_maven:
   - '[ -n "${SONAR_HOST_URL:-}" ] || { echo "ERROR: SONAR_HOST_URL is not defined"; exit 1; }'
   - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
   script:
-  - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+  - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8 -Dsonar.exclusions="$[[ inputs.excludes | expand_vars ]]"
   allow_failure: true
 
 # Gradle
@@ -285,7 +285,7 @@ sonar_gradle:
   # Verifica se as variáveis obrigatórias estão definidas
   - '[ -n "${SONAR_HOST_URL:-}" ] || { echo "ERROR: SONAR_HOST_URL is not defined"; exit 1; }'
   - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
-  script: gradle sonarqube
+  script: gradle sonarqube -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8 -Dsonar.exclusions="$[[ inputs.excludes | expand_vars ]]"
   allow_failure: true
 
 # Go
