@@ -239,7 +239,6 @@ sonar_dotnet:
   - 'dotnet sonarscanner begin /d:sonar.token="$SONAR_TOKEN" /d:"sonar.host.url=$SONAR_HOST_URL" '
   - "dotnet build"
   - 'dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"'
-  allow_failure: true
 
 # Maven
 sonar_maven:
@@ -263,7 +262,6 @@ sonar_maven:
   - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
   script:
   - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8 -Dsonar.exclusions="$[[ inputs.excludes | expand_vars ]]"
-  allow_failure: true
 
 # Gradle
 sonar_gradle:
@@ -286,7 +284,6 @@ sonar_gradle:
   - '[ -n "${SONAR_HOST_URL:-}" ] || { echo "ERROR: SONAR_HOST_URL is not defined"; exit 1; }'
   - '[ -n "${SONAR_TOKEN:-}" ]    || { echo "ERROR: SONAR_TOKEN is not defined"; exit 1; }'
   script: gradle sonarqube -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.token="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.sourceEncoding=UTF-8 -Dsonar.exclusions="$[[ inputs.excludes | expand_vars ]]"
-  allow_failure: true
 
 # Go
 sonar_go:
