@@ -410,6 +410,12 @@ sonar_go:
 
 # DefectDojo upload
 sonarqube_defectdojo:
+  rules:
+  - if: '$SEND_TO_DEFECTDOJO == "true"'
+    when: on_success
+  - if: '$[[ inputs.send_to_defectdojo ]] == "true"'
+    when: on_success
+  - when: never
   image: alpine
   stage: $[[ inputs.stage ]]
   environment: $[[ inputs.environment ]]
@@ -422,7 +428,9 @@ sonarqube_defectdojo:
     optional: true
   - job: sonar_dotnet_test_coverage
     optional: true
-  - job: sonar_dotnet
+  - job: sonarqube_dotnet
+    optional: true
+  - job: sonarqube_dotnet_amd64
     optional: true
   - job: sonar_maven
     optional: true
@@ -519,9 +527,3 @@ sonarqube_defectdojo:
     - sonarqube-report.html
     expire_in: 7 days
   allow_failure: true
-  rules:
-  - if: '$SEND_TO_DEFECTDOJO == "true"'
-    when: on_success
-  - if: '$[[ inputs.send_to_defectdojo ]] == "true"'
-    when: on_success
-  - when: never
